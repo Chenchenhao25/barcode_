@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner di Codici a Barre con ZXing</title>
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
+    <style>
+        #scanner {
+            width: 100%;
+            height: 300px;
+            display: none;
+            position: relative;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scanner di Codici a Barre</h1>
+    <button id="start-scanner">Inizia Scansione</button>
+    <div id="scanner"></div>
+    <div id="result">Codice a barre scannerizzato: <span id="barcode"></span></div>
+
+    <script>
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+
+        document.getElementById('start-scanner').addEventListener('click', function() {
+            const scanner = document.getElementById('scanner');
+            const resultDisplay = document.getElementById('barcode');
+            scanner.style.display = 'block';
+            resultDisplay.textContent = ''; // Pulisci il risultato precedente
+
+            codeReader.decodeFromVideoDevice(null, 'scanner', (result, err) => {
+                if (result) {
+                    console.log("Codice a barre scannerizzato:", result.text);
+                    resultDisplay.textContent = result.text; // Mostra il codice a barre nella pagina
+                    codeReader.reset(); // Ferma la scansione
+                    scanner.style.display = 'none'; // Nascondi il scanner dopo la scansione
+                }
+                if (err && !(err instanceof ZXing.NotFoundException)) {
+                    console.error(err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
