@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner di Codici a Barre con ZXing</title>
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
+    <title>Scanner di Codici a Barre con QuaggaJS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <style>
         #scanner {
             width: 100%;
@@ -26,23 +26,51 @@
     <div id="result">Codice a barre scannerizzato: <span id="barcode"></span></div>
 
     <script>
-        const codeReader = new ZXing.BrowserMultiFormatReader();
-
         document.getElementById('start-scanner').addEventListener('click', function() {
             const scanner = document.getElementById('scanner');
             const resultDisplay = document.getElementById('barcode');
             scanner.style.display = 'block';
             resultDisplay.textContent = ''; // Pulisci il risultato precedente
 
-            codeReader.decodeFromVideoDevice(null, 'scanner', (result, err) => {
-                if (result) {
-                    console.log("Codice a barre scannerizzato:", result.text);
-                    resultDisplay.textContent = result.text; // Mostra il codice a barre nella pagina
-                    codeReader.reset(); // Ferma la scansione
-                    scanner.style.display = 'none'; // Nascondi il scanner dopo la scansione
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: scanner
+                },
+                decoder: {
+                    readers: [
+                        "code_128_reader",
+                        "ean_reader",
+                        "ean_8_reader",
+                        "code_39_reader",
+                        "code_39_vin_reader",
+                        "codabar_reader",
+                        "upc_reader",
+                        "upc_e_reader",
+                        "i2of5_reader",
+                        "2of5_reader",
+                        "code_93_reader"
+                    ]
                 }
-                if (err && !(err instanceof ZXing.NotFoundException)) {
-                    console.error(err);
+            });
+
+            Quagga.onDetected(function(result) {
+                console.log("Codice a barre scannerizzato:", result.codeResult.code);
+                resultDisplay.textContent = result.codeResult.code; // Mostra il codice a barre nella pagina
+                Quagga.stop(); // Ferma la scansione
+                scanner.style.display = 'none'; // Nascondi il scanner dopo la scansione
+            });
+
+            Quagga.onProcessed(function(result) {
+                if (result.boxes) {
+                    if (result.boxId) {
+                        if (result.boxId !== result.previousBoxId) {
+                            const canvas = document.getElementById('canvas');
+                            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                            canvas.getContext('2d').drawImage(result.image, result.box.x, result.box.y, result.box.width, result.box.height, 0, 0, canvas.width, canvas.height);
+                        }
+                    }
                 }
             });
         });
