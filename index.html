@@ -36,23 +36,21 @@
                 inputStream: {
                     name: "Live",
                     type: "LiveStream",
-                    target: scanner
+                    target: scanner,
+                    constraints: {
+                        facingMode: "environment" // Usa la fotocamera posteriore
+                    }
                 },
                 decoder: {
-                    readers: [
-                        "code_128_reader",
-                        "ean_reader",
-                        "ean_8_reader",
-                        "code_39_reader",
-                        "code_39_vin_reader",
-                        "codabar_reader",
-                        "upc_reader",
-                        "upc_e_reader",
-                        "i2of5_reader",
-                        "2of5_reader",
-                        "code_93_reader"
-                    ]
+                    readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "code_39_vin_reader", "upc_reader", "upc_e_reader", "i2of5_reader"] // Aggiungi i formati che desideri supportare
                 }
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log("Scanner avviato");
+                Quagga.start();
             });
 
             Quagga.onDetected(function(result) {
@@ -60,18 +58,6 @@
                 resultDisplay.textContent = result.codeResult.code; // Mostra il codice a barre nella pagina
                 Quagga.stop(); // Ferma la scansione
                 scanner.style.display = 'none'; // Nascondi il scanner dopo la scansione
-            });
-
-            Quagga.onProcessed(function(result) {
-                if (result.boxes) {
-                    if (result.boxId) {
-                        if (result.boxId !== result.previousBoxId) {
-                            const canvas = document.getElementById('canvas');
-                            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                            canvas.getContext('2d').drawImage(result.image, result.box.x, result.box.y, result.box.width, result.box.height, 0, 0, canvas.width, canvas.height);
-                        }
-                    }
-                }
             });
         });
     </script>
